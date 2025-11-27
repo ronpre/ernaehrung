@@ -15,6 +15,7 @@ UPDATE_SCRIPT = AUTOMATION_DIR / "wochenplaene" / "scripts" / "update_weekly_pla
 TARGET_DIR = AUTOMATION_DIR / "wochenplaene"
 DOCS_ROOT = AUTOMATION_DIR.parent / "docs"
 DOCS_TARGET = DOCS_ROOT / "automation" / "wochenplaene"
+ROOT_REDIRECT = DOCS_ROOT / "index.html"
 
 
 def run_step(arguments: list[str]) -> None:
@@ -33,6 +34,19 @@ def mirror_to_docs() -> None:
         DOCS_TARGET,
         ignore=shutil.ignore_patterns("logs", "*.log", "*.err"),
     )
+    redirect = """<!DOCTYPE html>
+<html lang=\"de\">
+<head>
+  <meta charset=\"utf-8\" />
+  <meta http-equiv=\"refresh\" content=\"0; url=automation/wochenplaene/index.html\" />
+  <title>Ernaehrungsplaene</title>
+</head>
+<body>
+  <p><a href=\"automation/wochenplaene/index.html\">Weiter zum Wochenplan</a></p>
+</body>
+</html>
+"""
+    ROOT_REDIRECT.write_text(redirect, encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
