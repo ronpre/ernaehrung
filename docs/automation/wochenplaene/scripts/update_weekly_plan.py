@@ -206,7 +206,7 @@ def convert_plan_text(raw_text: str, start_date: dt.date) -> tuple[str, str, Lis
 
     parts: List[str] = []
     meal_names: List[str] = []
-    parts.append(f"  <h1>{html.escape(title)}</h1>")
+    parts.append(f"  <h1>Rezepte KW {iso_week:02d}/{iso_year}</h1>")
     parts.append(f"  <p>KW {iso_week:02d}/{iso_year}</p>")
 
     open_section = False
