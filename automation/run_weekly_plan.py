@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -12,11 +13,26 @@ AUTOMATION_DIR = Path(__file__).resolve().parent
 GENERATOR_SCRIPT = AUTOMATION_DIR / "generate_wochenplan.py"
 UPDATE_SCRIPT = AUTOMATION_DIR / "wochenplaene" / "scripts" / "update_weekly_plan.py"
 TARGET_DIR = AUTOMATION_DIR / "wochenplaene"
+DOCS_ROOT = AUTOMATION_DIR.parent / "docs"
+DOCS_TARGET = DOCS_ROOT / "automation" / "wochenplaene"
 
 
 def run_step(arguments: list[str]) -> None:
     """Startet einen einzelnen Schritt und gibt Fehler direkt weiter."""
     subprocess.run(arguments, check=True)
+
+
+def mirror_to_docs() -> None:
+    """Kopiert aktuelle Ausgabe nach docs/, damit GitHub Pages sie veroeffentlicht."""
+    DOCS_ROOT.mkdir(parents=True, exist_ok=True)
+    if DOCS_TARGET.exists():
+        shutil.rmtree(DOCS_TARGET)
+    DOCS_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(
+        TARGET_DIR,
+        DOCS_TARGET,
+        ignore=shutil.ignore_patterns("logs", "*.log", "*.err"),
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -41,6 +57,9 @@ def main() -> None:
 
     print("[weekly-plan] aktualisiere HTML-Index ...", flush=True)
     run_step([python, str(UPDATE_SCRIPT), str(TARGET_DIR)])
+
+    print("[weekly-plan] spiegele Dateien nach docs/...", flush=True)
+    mirror_to_docs()
 
     print("[weekly-plan] abgeschlossen.", flush=True)
 
