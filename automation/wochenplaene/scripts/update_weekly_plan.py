@@ -64,7 +64,7 @@ INDEX_STYLE_BLOCK = """  <style>
             font-family: Arial, sans-serif;
             line-height: 1.5;
             margin: 2rem auto;
-            max-width: 760px;
+            max-width: 820px;
             padding: 0 1rem;
         }
         h1 {
@@ -76,52 +76,54 @@ INDEX_STYLE_BLOCK = """  <style>
             font-size: 0.95rem;
             margin-bottom: 1.5rem;
         }
-        details {
-            background: #f6f8fa;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            padding: 0.75rem 1rem;
-        }
-        details[open] {
-            background: #ffffff;
-            border-color: #c0c8d2;
-            box-shadow: 0 4px 18px rgba(31, 77, 58, 0.08);
-        }
-        summary {
-            align-items: baseline;
-            cursor: pointer;
+        .plan-list {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.35rem 1rem;
-            font-weight: 600;
-            list-style: none;
+            flex-direction: column;
+            gap: 2rem;
         }
-        summary::-webkit-details-marker {
-            display: none;
+        .plan-entry {
+            background: #fefefe;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(31, 77, 58, 0.06);
+            padding: 1.25rem 1.5rem;
         }
-        .plan-kw {
+        .plan-entry header {
+            border-bottom: 1px solid #d0d7de;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+        }
+        .plan-entry h2 {
             color: #1f4d3a;
+            margin: 0 0 0.35rem;
         }
         .plan-period {
             color: #4f6b6b;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            margin: 0;
         }
         .plan-meals {
             color: #51606c;
-            flex-basis: 100%;
+            font-size: 0.92rem;
+            margin: 0.5rem 0 0;
+        }
+        .plan-links {
             font-size: 0.9rem;
-            font-weight: 400;
+            margin: 0.6rem 0 0;
         }
-        .plan-body {
-            border-top: 1px solid #d0d7de;
-            margin-top: 1rem;
-            padding-top: 1rem;
+        .plan-links a {
+            color: #1f4d3a;
+            font-weight: 600;
+            text-decoration: none;
         }
-        .plan-body h2 {
+        .plan-links a:hover {
+            text-decoration: underline;
+        }
+        .plan-body h2,
+        .plan-body h3 {
             color: #1f4d3a;
         }
-        .plan-meta {
+        .plan-body .plan-meta {
             color: #4f6b6b;
             font-size: 0.95rem;
             margin: 0.25rem 0 1rem;
@@ -371,7 +373,7 @@ def _plan_fragment_lines(body_html: str) -> List[str]:
         if not stripped:
             continue
         if stripped.startswith("<h1>"):
-            stripped = stripped.replace("<h1>", "<h2>", 1).replace("</h1>", "</h2>", 1)
+            stripped = stripped.replace("<h1>", "<h3>", 1).replace("</h1>", "</h3>", 1)
         elif stripped.startswith("<p>KW "):
             stripped = stripped.replace("<p>", "<p class=\"plan-meta\">", 1)
         fragments.append(f"        {stripped}")
@@ -393,23 +395,30 @@ def render_index(plans: Sequence[Plan]) -> str:
         "</head>",
         "<body>",
         "  <h1>Wochenplan mit Rezepten</h1>",
-        "  <p class=\"intro\">Jede Kalenderwoche enthaelt frische Rezeptideen, die sich per Klick aufklappen lassen.</p>",
+        "  <p class=\"intro\">Alle bisher erzeugten Kalenderwochen sind unten komplett aufgefuehrt.</p>",
         "  <div class=\"plan-list\">",
     ]
     for plan in sorted_plans:
         meal_summary = ", ".join(plan.meal_names)
         period_text = format_period_text(plan.start_date)
-        lines.append("    <details>")
-        lines.append("      <summary>")
-        lines.append(f"        <span class=\"plan-kw\">KW {plan.iso_week:02d}/{plan.iso_year}</span>")
-        lines.append(f"        <span class=\"plan-period\">{html.escape(period_text)}</span>")
+        alias_href = f"kw{plan.iso_week:02d}.html"
+        lines.append("    <article class=\"plan-entry\">")
+        lines.append("      <header>")
+        lines.append(f"        <h2>KW {plan.iso_week:02d}/{plan.iso_year}</h2>")
+        lines.append(f"        <p class=\"plan-period\">{html.escape(period_text)}</p>")
         if meal_summary:
-            lines.append(f"        <span class=\"plan-meals\">{html.escape(meal_summary)}</span>")
-        lines.append("      </summary>")
+            lines.append(f"        <p class=\"plan-meals\">{html.escape(meal_summary)}</p>")
+        lines.append(
+            "        <p class=\"plan-links\">"
+            f"<a href=\"{plan.canonical_filename}\">Plan vom {plan.start_date.isoformat()}</a>"
+            f" · <a href=\"{alias_href}\">Kalenderwoche {plan.iso_week:02d}</a>"
+            "</p>"
+        )
+        lines.append("      </header>")
         lines.append("      <div class=\"plan-body\">")
         lines.extend(_plan_fragment_lines(plan.body_html))
         lines.append("      </div>")
-        lines.append("    </details>")
+        lines.append("    </article>")
     lines.extend(["  </div>", "</body>", "</html>"])
     return "\n".join(lines) + "\n"
 
