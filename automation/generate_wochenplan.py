@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
+import argparse
 import random
-import sys
 from datetime import date
 from pathlib import Path
 
@@ -761,10 +761,9 @@ def build_index_html(plan_files: list[Path]) -> str:
     return "".join(line.rstrip() for line in html.splitlines(True))
 
 
-def ensure_friday(force: bool) -> None:
-    """Bricht ab, falls heute kein Freitag ist und kein Force-Flag gesetzt wurde."""
-    today = date.today()
-    if today.weekday() != 4 and not force:
+def ensure_friday(target: date, force: bool) -> None:
+    """Bricht ab, falls Ziel-Datum kein Freitag ist und kein Force-Flag gesetzt wurde."""
+    if target.weekday() != 4 and not force:
         raise SystemExit(
             "Heute ist kein Freitag. Nutze die Option --force, um trotzdem einen Plan zu erstellen."
         )
@@ -786,23 +785,46 @@ def build_output_paths(today: date) -> tuple[Path, Path, Path, Path, int, int]:
     )
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Erzeugt Wochenplaene fuer die Ernaehrung")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Ueberschreibt bestehende Plaene und ignoriert Wochentag-Pruefung",
+    )
+    parser.add_argument(
+        "--date",
+        metavar="YYYY-MM-DD",
+        help="Datum, fuer das der Plan erstellt werden soll (Standard: heutiges Datum)",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
     """Erzeugt bei Bedarf eine neue Plan-Datei."""
-    force = "--force" in sys.argv
-    ensure_friday(force)
+    args = parse_args()
 
-    today = date.today()
-    paths = build_output_paths(today)
+    if args.date:
+        try:
+            target = date.fromisoformat(args.date)
+        except ValueError as exc:  # pragma: no cover - defensiv
+            raise SystemExit(f"Ungueltiges Datum: {args.date}") from exc
+    else:
+        target = date.today()
+
+    ensure_friday(target, args.force)
+
+    paths = build_output_paths(target)
     text_path, html_path, kw_text_path, kw_html_path, iso_week, iso_year = paths
     if (text_path.exists() or html_path.exists() or kw_text_path.exists() or kw_html_path.exists()) and not force:
         raise SystemExit(
             "Es existiert bereits eine Datei fuer heute. Nutze --force, um sie zu ueberschreiben."
         )
 
-    forbidden_meals = load_previous_meal_names(today)
+    forbidden_meals = load_previous_meal_names(target)
     meals, snacks, beverage_tip = select_plan(forbidden_meals)
-    content = build_text(today, meals, snacks, beverage_tip)
-    html_content = build_html(today, meals, snacks, beverage_tip)
+    content = build_text(target, meals, snacks, beverage_tip)
+    html_content = build_html(target, meals, snacks, beverage_tip)
 
     text_path.write_text(content, encoding="utf-8")
     html_path.write_text(html_content, encoding="utf-8")

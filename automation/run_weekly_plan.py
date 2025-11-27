@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Ueberschreibt bestehende Plaene (nur fuer manuelle Tests noetig)",
     )
+    parser.add_argument(
+        "--date",
+        metavar="YYYY-MM-DD",
+        help="Datum, fuer das der Plan generiert werden soll",
+    )
     return parser.parse_args()
 
 
@@ -53,6 +58,8 @@ def main() -> None:
     generator_call = [python, str(GENERATOR_SCRIPT)]
     if args.force:
         generator_call.append("--force")
+    if args.date:
+        generator_call.extend(["--date", args.date])
     run_step(generator_call)
 
     print("[weekly-plan] aktualisiere HTML-Index ...", flush=True)
