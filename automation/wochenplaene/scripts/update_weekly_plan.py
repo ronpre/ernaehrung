@@ -110,10 +110,6 @@ INDEX_STYLE_BLOCK = """  <style>
             color: #1f4d3a;
             font-weight: 600;
         }
-        .plan-period {
-            color: #4f6b6b;
-            font-size: 0.95rem;
-        }
         .plan-meals {
             color: #51606c;
             flex-basis: 100%;
@@ -424,7 +420,6 @@ def render_index(plans: Sequence[Plan]) -> str:
         lines.append("      <details>")
         lines.append("        <summary>")
         lines.append(f"          <span class=\"plan-kw\">KW {plan.iso_week:02d}/{plan.iso_year}</span>")
-        lines.append(f"          <span class=\"plan-period\">{html.escape(period_text)}</span>")
         if meal_summary:
             lines.append(f"          <span class=\"plan-meals\">{html.escape(meal_summary)}</span>")
         lines.append("        </summary>")
@@ -432,7 +427,7 @@ def render_index(plans: Sequence[Plan]) -> str:
         lines.append(
             "          <p class=\"plan-links\">"
             f"<a href=\"{plan.canonical_filename}\">Plan vom {plan.start_date.isoformat()}</a>"
-            f" · <a href=\"{alias_href}\">Kalenderwoche {plan.iso_week:02d}</a>"
+            f" · <a href=\"{alias_href}\">Kalenderwoche {plan.iso_week:02d} ({html.escape(period_text)})</a>"
             "</p>"
         )
         lines.extend(_plan_fragment_lines(plan.body_html))
