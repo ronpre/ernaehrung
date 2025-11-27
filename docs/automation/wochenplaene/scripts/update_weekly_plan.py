@@ -109,11 +109,6 @@ INDEX_STYLE_BLOCK = """  <style>
             margin-top: 1rem;
             padding-top: 1rem;
         }
-        .plan-period {
-            color: #4f6b6b;
-            font-size: 0.95rem;
-            margin: 0 0 0.75rem;
-        }
         .plan-links {
             font-size: 0.9rem;
             margin: 0 0 1rem;
@@ -412,7 +407,6 @@ def render_index(plans: Sequence[Plan]) -> str:
         lines.append("      <details>")
         lines.append(f"        <summary>KW {plan.iso_week:02d}/{plan.iso_year}</summary>")
         lines.append("        <div class=\"plan-body\">")
-        lines.append(f"          <p class=\"plan-period\">{html.escape(period_text)}</p>")
         lines.append(
             "          <p class=\"plan-links\">"
             f"<a href=\"{plan.canonical_filename}\">Plan vom {plan.start_date.isoformat()}</a>"
