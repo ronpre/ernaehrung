@@ -71,11 +71,6 @@ INDEX_STYLE_BLOCK = """  <style>
             color: #1f4d3a;
             margin-bottom: 1rem;
         }
-        p.intro {
-            color: #4f6b6b;
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-        }
         .plan-list {
             display: flex;
             flex-direction: column;
@@ -211,7 +206,6 @@ def convert_plan_text(raw_text: str, start_date: dt.date) -> tuple[str, str, Lis
 
     parts: List[str] = []
     meal_names: List[str] = []
-    parts.append(f"  <h1>{html.escape(title)}</h1>")
     parts.append(f"  <p>KW {iso_week:02d}/{iso_year}</p>")
 
     open_section = False
@@ -355,8 +349,7 @@ def _plan_fragment_lines(body_html: str) -> List[str]:
         if not stripped:
             continue
         if stripped.startswith("<h1>"):
-            content = stripped.replace("<h1>", "", 1).replace("</h1>", "", 1)
-            stripped = f"<p><strong>{content}</strong></p>"
+            continue
         elif stripped.startswith("<p>KW "):
             continue
         elif stripped.startswith("<h3>"):
@@ -380,8 +373,7 @@ def render_index(plans: Sequence[Plan]) -> str:
         INDEX_STYLE_BLOCK,
         "</head>",
         "<body>",
-        "  <h1>Wochenplan mit Rezepten</h1>",
-        "  <p class=\"intro\">Alle bisher erzeugten Kalenderwochen sind unten aufgefuehrt und lassen sich per Klick aufklappen.</p>",
+        "  <h1>Rezepte</h1>",
         "  <div class=\"plan-list\">",
     ]
     for plan in sorted_plans:
