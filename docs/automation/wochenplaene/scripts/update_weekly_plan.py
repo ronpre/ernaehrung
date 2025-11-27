@@ -104,31 +104,11 @@ INDEX_STYLE_BLOCK = """  <style>
         summary::-webkit-details-marker {
             display: none;
         }
-        .plan-body {
-            border-top: 1px solid #d0d7de;
-            margin-top: 1rem;
-            padding-top: 1rem;
-        }
-        .plan-links {
-            font-size: 0.9rem;
-            margin: 0 0 1rem;
-        }
-        .plan-links a {
-            color: #1f4d3a;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .plan-links a:hover {
-            text-decoration: underline;
-        }
-        .plan-body h2,
-        .plan-body h3 {
+        .plan-body h2 {
             color: #1f4d3a;
         }
-        .plan-body .plan-meta {
-            color: #4f6b6b;
-            font-size: 0.95rem;
-            margin: 0.25rem 0 1rem;
+        .plan-body strong {
+            color: #1f4d3a;
         }
     </style>"""
 
@@ -375,9 +355,13 @@ def _plan_fragment_lines(body_html: str) -> List[str]:
         if not stripped:
             continue
         if stripped.startswith("<h1>"):
-            stripped = stripped.replace("<h1>", "<h3>", 1).replace("</h1>", "</h3>", 1)
+            content = stripped.replace("<h1>", "", 1).replace("</h1>", "", 1)
+            stripped = f"<p><strong>{content}</strong></p>"
         elif stripped.startswith("<p>KW "):
-            stripped = stripped.replace("<p>", "<p class=\"plan-meta\">", 1)
+            continue
+        elif stripped.startswith("<h3>"):
+            content = stripped.replace("<h3>", "", 1).replace("</h3>", "", 1)
+            stripped = f"<p><strong>{content}</strong></p>"
         fragments.append(f"          {stripped}")
     return fragments
 
@@ -401,31 +385,16 @@ def render_index(plans: Sequence[Plan]) -> str:
         "  <div class=\"plan-list\">",
     ]
     for plan in sorted_plans:
-        period_text = format_period_text(plan.start_date)
-        alias_href = f"kw{plan.iso_week:02d}.html"
         lines.append("    <section class=\"plan-entry\">")
         lines.append("      <details>")
         lines.append(f"        <summary>KW {plan.iso_week:02d}/{plan.iso_year}</summary>")
         lines.append("        <div class=\"plan-body\">")
-        lines.append(
-            "          <p class=\"plan-links\">"
-            f"<a href=\"{plan.canonical_filename}\">Plan vom {plan.start_date.isoformat()}</a>"
-            f" · <a href=\"{alias_href}\">Kalenderwoche {plan.iso_week:02d} ({html.escape(period_text)})</a>"
-            "</p>"
-        )
         lines.extend(_plan_fragment_lines(plan.body_html))
         lines.append("        </div>")
         lines.append("      </details>")
         lines.append("    </section>")
     lines.extend(["  </div>", "</body>", "</html>"])
     return "\n".join(lines) + "\n"
-
-
-def format_period_text(start_date: dt.date) -> str:
-    end_date = start_date + dt.timedelta(days=6)
-    return f"{start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}"
-
-
 def main() -> None:
     args = parse_args()
     base_dir = args.target_dir.resolve()
