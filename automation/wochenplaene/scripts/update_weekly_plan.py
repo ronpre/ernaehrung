@@ -95,31 +95,24 @@ INDEX_STYLE_BLOCK = """  <style>
             background: #ffffff;
         }
         summary {
-            align-items: baseline;
             cursor: pointer;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem 1rem;
+            font-weight: 600;
+            color: #1f4d3a;
             list-style: none;
             margin: 0;
         }
         summary::-webkit-details-marker {
             display: none;
         }
-        .plan-kw {
-            color: #1f4d3a;
-            font-weight: 600;
-        }
-        .plan-meals {
-            color: #51606c;
-            flex-basis: 100%;
-            font-size: 0.9rem;
-            margin-top: 0.25rem;
-        }
         .plan-body {
             border-top: 1px solid #d0d7de;
             margin-top: 1rem;
             padding-top: 1rem;
+        }
+        .plan-period {
+            color: #4f6b6b;
+            font-size: 0.95rem;
+            margin: 0 0 0.75rem;
         }
         .plan-links {
             font-size: 0.9rem;
@@ -413,17 +406,13 @@ def render_index(plans: Sequence[Plan]) -> str:
         "  <div class=\"plan-list\">",
     ]
     for plan in sorted_plans:
-        meal_summary = ", ".join(plan.meal_names)
         period_text = format_period_text(plan.start_date)
         alias_href = f"kw{plan.iso_week:02d}.html"
         lines.append("    <section class=\"plan-entry\">")
         lines.append("      <details>")
-        lines.append("        <summary>")
-        lines.append(f"          <span class=\"plan-kw\">KW {plan.iso_week:02d}/{plan.iso_year}</span>")
-        if meal_summary:
-            lines.append(f"          <span class=\"plan-meals\">{html.escape(meal_summary)}</span>")
-        lines.append("        </summary>")
+        lines.append(f"        <summary>KW {plan.iso_week:02d}/{plan.iso_year}</summary>")
         lines.append("        <div class=\"plan-body\">")
+        lines.append(f"          <p class=\"plan-period\">{html.escape(period_text)}</p>")
         lines.append(
             "          <p class=\"plan-links\">"
             f"<a href=\"{plan.canonical_filename}\">Plan vom {plan.start_date.isoformat()}</a>"
